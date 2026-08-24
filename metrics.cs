@@ -1,0 +1,30 @@
+public record MetricSample(
+     DateTime Timestamp, int ProcessId, string ProcessName,
+    double CpuPercent,
+    long WorkingSetBytes, long PrivateBytes,
+    long DiskReadBytesPerSec, long DiskWriteBytesPerSec,  // rates — delta like CPU
+    int HandleCount, int ThreadCount
+);
+
+public record LatencySample(
+    DateTime Timestamp,
+    string OperationName,
+    double DurationMs);
+
+public enum AppEventKind {
+    Crash, Hang, Error, Warning
+}
+
+public record AppEvent(
+    DateTime Timestamp, int ProcessId, string ProcessName,
+    AppEventKind Kind, string? Detail
+);
+
+public interface IMetricSource {      // pull, on a timer
+    string Platform { get; }
+    IReadOnlyList<MetricSample> Sample();
+}
+public interface IEventSource {        // push, event-driven
+    event Action<AppEvent> EventRaised;
+    void Start();  void Stop();
+}
