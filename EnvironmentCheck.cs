@@ -37,7 +37,7 @@ public sealed class EnvironmentCheck : IEnvironmentCheck {
     [SupportedOSPlatform("windows")]
     private static Capability ProbePerfCounters () {
         try{
-            using var counter = new PerformanceCounter("Processor","% Processor Time", true);
+            using var counter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             counter.NextValue();
             return Capability.Available;
         }catch(PlatformNotSupportedException){
@@ -46,7 +46,6 @@ public sealed class EnvironmentCheck : IEnvironmentCheck {
             return Capability.Restricted; // permission denied;
         }
     }
-
     [SupportedOSPlatform("windows")]
     private static Capability ProbeEventLog(bool isElevated) {
         if(!isElevated) return Capability.Restricted;
@@ -71,7 +70,9 @@ public sealed class CrossPlatformMetricSource : IMetricSource
 {
     public string Platform => "cross-platform";
     private readonly Dictionary<int, (TimeSpan cpu, DateTime at)> _prev = new();
+    private readonly Func<string, bool> _include;
 
+    public CrossPlatformMetricSource(Func<string, bool>? include = null)=> _include = include ?? (_=>true);
     public IReadOnlyList<MetricSample> Sample()
     {
         var now = DateTime.UtcNow;
@@ -82,6 +83,7 @@ public sealed class CrossPlatformMetricSource : IMetricSource
         {
             try
             {
+                if (!_include(p.ProcessName)) continue;
                 var cpuTime = p.TotalProcessorTime;
                 double cpu = 0;
                 if (_prev.TryGetValue(p.Id, out var last))
@@ -118,18 +120,14 @@ public sealed class WindowsMetricSource : IMetricSource
 
 public sealed class EtwHangSource : IEventSource
 {
-#pragma warning disable CS0067
     public event Action<AppEvent>? EventRaised;
-#pragma warning restore CS0067
     public void Start() { }
     public void Stop() { }
 }
 
 public sealed class EventLogCrashSource : IEventSource
 {
-#pragma warning disable CS0067
     public event Action<AppEvent>? EventRaised;
-#pragma warning restore CS0067
     public void Start() { }
     public void Stop() { }
 }
