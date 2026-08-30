@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private readonly MetricsStore _store = new(capacityPerProcess: 120);
     private readonly DispatcherTimer _timer;
     private int _sampleCount;
+    private int? _selectedPid;
 
     public MainWindow()
     {
@@ -57,39 +58,82 @@ public partial class MainWindow : Window
         StatusText.Text =
             $"{triage.Count} processes · {_sampleCount} samples · " +
             $"updated {DateTime.Now:HH:mm:ss} · {leakStatus}";
-
-        if (triage.Count > 0)
-            PlotProcess(triage[0].ProcessId, triage[0].ProcessName);   // worst-ranked
+        if (_selectedPid is int pid)
+        {
+            var chosen = triage.FirstOrDefault(c => c.ProcessId == pid);
+            if (chosen is not null) ShowDetail(chosen.ProcessId, chosen.ProcessName);
+        }
+        else if (triage.Count > 0)
+        {
+            ShowDetail(triage[0].ProcessId, triage[0].ProcessName);
+        }
     }
 
-    private void PlotProcess(int pid, string name)
+ private void OnRowSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (TriageGrid.SelectedItem is Concern c)
+        {
+            _selectedPid = c.ProcessId;
+            ShowDetail(c.ProcessId, c.ProcessName);
+        }
+    }
+
+    // ★ CHANGE 4b: new method — handles the "Back to worst" button
+    private void OnBackToWorst(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _selectedPid = null;
+        TriageGrid.SelectedItem = null;
+    }
+
+    // Delete PlotProcess completely — ShowDetail takes its place (two charts + stats line).
+    private void ShowDetail(int pid, string name)
     {
         var history = _store.History(pid);
-        if (history.Count < 2) return;
+        DetailTitle.Text = _selectedPid is null ? $"{name}  (worst)" : $"{name}  (selected)";
 
-        var plot = MemoryChart.Plot;
-        plot.Clear();
-
-        // x = seconds since first sample, y = memory in MB
-        double t0 = history[0].Timestamp.Ticks;
-        double[] xs = history.Select(s => (s.Timestamp.Ticks - t0) / (double)TimeSpan.TicksPerSecond).ToArray();
-        double[] ys = history.Select(s => s.WorkingSetBytes / (1024.0 * 1024.0)).ToArray();
-
-        plot.Add.ScatterPoints(xs, ys);   // the raw memory points
-
-        // draw the fitted regression line (same Stats.Fit that powers leak detection)
-        if (history.Count >= 30)
+        if (history.Count < 2)
         {
-            var fit = Stats.Fit(xs, ys);
-            double x0 = xs[0], x1 = xs[^1];
-            double y0 = fit.Slope * x0 + fit.Intercept;
-            double y1 = fit.Slope * x1 + fit.Intercept;
-            var line = plot.Add.Line(x0, y0, x1, y1);
-            line.LineWidth = 2;
+            DetailStats.Text = "collecting…";
+            return;
         }
 
-        plot.Title($"{name} — memory (MB) over time");
-        plot.Axes.AutoScale();
+        double t0 = history[0].Timestamp.Ticks;
+        double[] xs  = history.Select(s => (s.Timestamp.Ticks - t0) / (double)TimeSpan.TicksPerSecond).ToArray();
+        double[] mem = history.Select(s => s.WorkingSetBytes / (1024.0 * 1024.0)).ToArray();
+        double[] cpu = history.Select(s => (double)s.CpuPercent).ToArray();
+
+        // memory chart + regression line
+        var mp = MemoryChart.Plot;
+        mp.Clear();
+        mp.Add.ScatterPoints(xs, mem);
+        double leakRate = 0, r2 = 0;
+        if (history.Count >= 30)
+        {
+            var fit = Stats.Fit(xs, mem);
+            leakRate = fit.Slope * 60.0;
+            r2 = fit.RSquared;
+            double y0 = fit.Slope * xs[0]  + fit.Intercept;
+            double y1 = fit.Slope * xs[^1] + fit.Intercept;
+            var line = mp.Add.Line(xs[0], y0, xs[^1], y1);
+            line.LineWidth = 2;
+        }
+        mp.Title("Memory (MB)");
+        mp.Axes.AutoScale();
         MemoryChart.Refresh();
+
+        // cpu chart
+        var cp = CpuChart.Plot;
+        cp.Clear();
+        cp.Add.ScatterLine(xs, cpu);
+        cp.Title("CPU (%)");
+        cp.Axes.AutoScale();
+        CpuChart.Refresh();
+
+        // stats line
+        double p95 = Stats.Percentile(cpu, 95);
+        double vol = Stats.StdDev(cpu);
+        DetailStats.Text = history.Count >= 30
+            ? $"CPU p95={p95:0.0}%  ·  volatility σ={vol:0.0}  ·  leak={leakRate:+0.0;-0.0} MB/min (R²={r2:0.00})  ·  {history.Count} samples"
+            : $"CPU p95={p95:0.0}%  ·  volatility σ={vol:0.0}  ·  leak: need {30 - history.Count} more samples  ·  {history.Count} samples";
     }
 } 

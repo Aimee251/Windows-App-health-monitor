@@ -61,6 +61,7 @@ public sealed class EnvironmentCheck : IEnvironmentCheck {
         }
     }
 
+    [SupportedOSPlatform("windows")]
     private static Capability ProbeETW(bool isElevated) {
         return isElevated ? Capability.Available : Capability.Restricted;
     }

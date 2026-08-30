@@ -24,6 +24,6 @@ public sealed class LatencyStore
             ? buf.Items().Select(x => x.DurationMs).ToList()
             : Array.Empty<double>();
 
-    // every operation name we've seen
+    // every operation name seen so far
     public IReadOnlyList<string> Operations() => _byOp.Keys.ToList();
 }
