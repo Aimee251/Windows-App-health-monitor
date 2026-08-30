@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvaloniaTest.DigestWindow"
+        Width="420" Height="380"
+        Topmost="True"
+        CanResize="False"
+        Title="App Health Digest">
+    <DockPanel Margin="16">
+        <Button DockPanel.Dock="Bottom" Content="Dismiss" HorizontalAlignment="Right"
+                Margin="0,12,0,0" Click="OnDismiss"/>
+        <TextBlock Name="DigestText" TextWrapping="Wrap" FontFamily="Menlo,Consolas,monospace"
+                   FontSize="13"/>
+    </DockPanel>
+</Window>
