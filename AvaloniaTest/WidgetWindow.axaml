@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvaloniaTest.WidgetWindow"
+        Width="240" Height="80"
+        SystemDecorations="None"
+        Topmost="True"
+        CanResize="False"
+        Background="#222222"
+        Title="Health Widget">
+    <Border Background="#222222" CornerRadius="8" Padding="12" Cursor="Hand"
+            PointerPressed="OnWidgetClicked">
+        <StackPanel>
+            <TextBlock Text="App Health" FontSize="11" Foreground="#888888"/>
+            <TextBlock Name="WorstText" Text="starting…" FontSize="15"
+                       FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+            <TextBlock Name="SevText" Text="" FontSize="12" Margin="0,2,0,0"/>
+        </StackPanel>
+    </Border>
+</Window>

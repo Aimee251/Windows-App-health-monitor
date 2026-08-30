@@ -15,7 +15,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            var monitor = new Monitor();                 // the shared engine
+            desktop.MainWindow = new WidgetWindow(monitor);   // widget is the startup window
         }
 
         base.OnFrameworkInitializationCompleted();

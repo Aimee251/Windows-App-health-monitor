@@ -1,33 +1,44 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:AppHealth.Core;assembly=AvaloniaTest"
         xmlns:sp="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
-        xmlns:core="using:AppHealth.Core"
         x:Class="AvaloniaTest.MainWindow"
-        Width="700" Height="500"
+        Width="820" Height="620"
         Title="App Health Monitor">
-<DockPanel Margin="12">
-    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-        <TextBlock Text="Process Triage (worst first)"
-                   FontSize="18" FontWeight="Bold"/>
-        <TextBlock Name="StatusText" Text="starting…"
-                   FontSize="12" Foreground="Gray" Margin="0,4,0,0"/>
-    </StackPanel>
+    <DockPanel Margin="12">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBlock Text="Process Triage (worst first)"
+                       FontSize="18" FontWeight="Bold"/>
+            <TextBlock Name="StatusText" Text="starting…"
+                       FontSize="12" Foreground="Gray" Margin="0,4,0,0"/>
+        </StackPanel>
 
-    <!-- chart pinned to the bottom half -->
-    <Border DockPanel.Dock="Bottom" Height="240" Margin="0,8,0,0"
-            BorderBrush="LightGray" BorderThickness="1">
-        <sp:AvaPlot Name="MemoryChart"/>
-    </Border>
+        <Border DockPanel.Dock="Bottom" Height="300" Margin="0,8,0,0"
+                BorderBrush="LightGray" BorderThickness="1" Padding="8">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <TextBlock Name="DetailTitle" Text="Detail" FontWeight="Bold" FontSize="14"
+                               VerticalAlignment="Center"/>
+                    <Button Name="BackButton" Content="◀ Back to worst"
+                            HorizontalAlignment="Right" Click="OnBackToWorst"/>
+                </Grid>
+                <TextBlock Name="DetailStats" DockPanel.Dock="Top" Text=""
+                           FontSize="12" Foreground="DimGray" Margin="0,0,0,6"/>
+                <Grid ColumnDefinitions="*,*">
+                    <sp:AvaPlot Name="MemoryChart" Grid.Column="0" Margin="0,0,4,0"/>
+                    <sp:AvaPlot Name="CpuChart"    Grid.Column="1" Margin="4,0,0,0"/>
+                </Grid>
+            </DockPanel>
+        </Border>
 
-    <!-- grid fills the rest -->
-    <DataGrid Name="TriageGrid" IsReadOnly="True" GridLinesVisibility="Horizontal"
-              x:DataType="core:Concern">
-        <DataGrid.Columns>
-            <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="90"/>
-            <DataGridTextColumn Header="Process"  Binding="{Binding ProcessName}" Width="200"/>
-            <DataGridTextColumn Header="Score"    Binding="{Binding Score}" Width="70"/>
-            <DataGridTextColumn Header="Reason"   Binding="{Binding Reason}" Width="*"/>
-        </DataGrid.Columns>
-    </DataGrid>
-</DockPanel>
+        <DataGrid Name="TriageGrid" IsReadOnly="True" GridLinesVisibility="Horizontal"
+                  x:DataType="core:Concern" SelectionChanged="OnRowSelected">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="90"/>
+                <DataGridTextColumn Header="Process"  Binding="{Binding ProcessName}" Width="200"/>
+                <DataGridTextColumn Header="Score"    Binding="{Binding Score}" Width="70"/>
+                <DataGridTextColumn Header="Reason"   Binding="{Binding Reason}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
 </Window>
