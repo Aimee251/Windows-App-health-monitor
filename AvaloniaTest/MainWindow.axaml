@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sp="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
+        xmlns:core="using:AppHealth.Core"
+        x:Class="AvaloniaTest.MainWindow"
+        Width="700" Height="500"
+        Title="App Health Monitor">
+<DockPanel Margin="12">
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+        <TextBlock Text="Process Triage (worst first)"
+                   FontSize="18" FontWeight="Bold"/>
+        <TextBlock Name="StatusText" Text="starting…"
+                   FontSize="12" Foreground="Gray" Margin="0,4,0,0"/>
+    </StackPanel>
+
+    <!-- chart pinned to the bottom half -->
+    <Border DockPanel.Dock="Bottom" Height="240" Margin="0,8,0,0"
+            BorderBrush="LightGray" BorderThickness="1">
+        <sp:AvaPlot Name="MemoryChart"/>
+    </Border>
+
+    <!-- grid fills the rest -->
+    <DataGrid Name="TriageGrid" IsReadOnly="True" GridLinesVisibility="Horizontal"
+              x:DataType="core:Concern">
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="90"/>
+            <DataGridTextColumn Header="Process"  Binding="{Binding ProcessName}" Width="200"/>
+            <DataGridTextColumn Header="Score"    Binding="{Binding Score}" Width="70"/>
+            <DataGridTextColumn Header="Reason"   Binding="{Binding Reason}" Width="*"/>
+        </DataGrid.Columns>
+    </DataGrid>
+</DockPanel>
+</Window>
