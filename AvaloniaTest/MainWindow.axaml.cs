@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     {
         var triage = _monitor.Triage;
         TriageGrid.ItemsSource = triage;
+        LatencyGrid.ItemsSource = _monitor.LatencyTriage;
 
         int n = _monitor.SampleCount;
         string leakStatus = n >= 30 ? "leak detection active" : $"leak detection in {30 - n} more samples";

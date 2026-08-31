@@ -3,7 +3,7 @@
         xmlns:core="clr-namespace:AppHealth.Core;assembly=AvaloniaTest"
         xmlns:sp="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
         x:Class="AvaloniaTest.MainWindow"
-        Width="820" Height="620"
+        Width="1000" Height="720"
         Title="App Health Monitor">
     <DockPanel Margin="12">
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
@@ -12,6 +12,26 @@
             <TextBlock Name="StatusText" Text="starting…"
                        FontSize="12" Foreground="Gray" Margin="0,4,0,0"/>
         </StackPanel>
+
+        <Border DockPanel.Dock="Top" Height="140" Margin="0,0,0,8"
+                BorderBrush="LightGray" BorderThickness="1" Padding="6">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Operation Latency (worst tail first)"
+                           FontWeight="Bold" FontSize="13" Margin="0,0,0,4"/>
+                <DataGrid Name="LatencyGrid" IsReadOnly="True" GridLinesVisibility="Horizontal"
+                          x:DataType="core:OpConcern">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="App"       Binding="{Binding AppName}" Width="150"/>
+                        <DataGridTextColumn Header="Severity"  Binding="{Binding Severity}" Width="80"/>
+                        <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="140"/>
+                        <DataGridTextColumn Header="p50" Binding="{Binding P50, StringFormat='{}{0:0}ms'}" Width="70"/>
+                        <DataGridTextColumn Header="p95" Binding="{Binding P95, StringFormat='{}{0:0}ms'}" Width="70"/>
+                        <DataGridTextColumn Header="p99" Binding="{Binding P99, StringFormat='{}{0:0}ms'}" Width="70"/>
+                        <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
 
         <Border DockPanel.Dock="Bottom" Height="300" Margin="0,8,0,0"
                 BorderBrush="LightGray" BorderThickness="1" Padding="8">

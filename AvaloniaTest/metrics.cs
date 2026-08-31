@@ -11,11 +11,6 @@ public record MetricSample(
     int HandleCount, int ThreadCount
 );
 
-public record LatencySample(
-    DateTime Timestamp,
-    string OperationName,
-    double DurationMs);
-
 public enum AppEventKind {
     Crash, Hang, Error, Warning
 }
@@ -47,3 +42,9 @@ public record EnvironmentReport(
 public interface IEnvironmentCheck{
     EnvironmentReport Inspect();
 }
+
+public record LatencySample(
+    DateTime Timestamp,
+    string AppName,
+    string OperationName,
+    double DurationMs);
