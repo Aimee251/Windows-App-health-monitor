@@ -37,7 +37,7 @@ public sealed class Monitor
             "node", "dotnet", "python3", "java",
             "Antigravity IDE Helper", "Code", "Code Helper",
         };
-        _source = report.IsWindows && report.PerfCounters == Capability.Available
+        _source = report.IsWindows
             ? new WindowsMetricSource()
             : new CrossPlatformMetricSource(name => watchlist.Contains(name));
 
