@@ -101,7 +101,7 @@ public sealed class CrossPlatformMetricSource : IMetricSource
                     0, 0,
                     SafeHandles(p), p.Threads.Count));
             }
-            catch { /* exited or access denied */ }
+            catch (Exception ex) { Console.WriteLine($"skip {p.ProcessName}: {ex.Message}"); }
             finally { p.Dispose(); }
         }
         return list;
