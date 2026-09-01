@@ -116,7 +116,44 @@ public sealed class CrossPlatformMetricSource : IMetricSource
 public sealed class WindowsMetricSource : IMetricSource
 {
     public string Platform => "windows";
-    public IReadOnlyList<MetricSample> Sample() => Array.Empty<MetricSample>();
+    private readonly Dictionary<int, (TimeSpan cpu, DateTime at)> _prev = new();
+
+    public IReadOnlyList<MetricSample> Sample()
+    {
+        var now = DateTime.UtcNow;
+        var cores = Environment.ProcessorCount;
+        var list = new List<MetricSample>();
+
+        foreach (var p in Process.GetProcesses())
+        {
+            try
+            {
+                var cpuTime = p.TotalProcessorTime;
+                double cpu = 0;
+                if (_prev.TryGetValue(p.Id, out var last))
+                {
+                    var cpuDelta  = (cpuTime - last.cpu).TotalMilliseconds;
+                    var wallDelta = (now - last.at).TotalMilliseconds;
+                    if (wallDelta > 0) cpu = cpuDelta / wallDelta / cores * 100.0;
+                }
+                _prev[p.Id] = (cpuTime, now);
+
+                list.Add(new MetricSample(
+                    now, p.Id, p.ProcessName, Math.Round(cpu, 2),
+                    p.WorkingSet64, p.PrivateMemorySize64,
+                    0, 0,
+                    SafeHandles(p), p.Threads.Count));
+            }
+            catch { /* process exited or access denied — skip */ }
+            finally { p.Dispose(); }
+        }
+        return list;
+    }
+
+    private static int SafeHandles(Process p)
+    {
+        try { return p.HandleCount; } catch { return 0; }
+    }
 }
 
 public sealed class EtwHangSource : IEventSource
